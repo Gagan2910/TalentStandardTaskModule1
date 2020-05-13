@@ -6,7 +6,7 @@ export default class SelfIntroduction extends React.Component {
     constructor(props) {
         super(props);
         this.state={
-           info:props.info,
+           info:{summary:"",description:""},
           // description:props.description
         }
         this.handleChange = this.handleChange.bind(this)
@@ -25,6 +25,11 @@ export default class SelfIntroduction extends React.Component {
     }
    
     saveIntro() {
+        if(this.state.info.summary === "" || this.state.info.description === "")
+        {
+          TalentUtil.notification.show("Please enter summary and description", "error", null, null)
+        }
+        else{
         console.log(this.props.componentId)
         console.log(this.state.info)
         //console.log(this.state.description)
@@ -32,6 +37,7 @@ export default class SelfIntroduction extends React.Component {
         const data1 = this.state.summary
         //const data2 = this.state.description
         this.props.controlFunc(this.props.componentId,data)
+        }
 
     }
     
@@ -62,6 +68,7 @@ export default class SelfIntroduction extends React.Component {
        
     }
 }
+
 
 
 

@@ -7,7 +7,7 @@ export class Address extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            addressData:props.addressData,
+            addressData:{number:"",street:"",suburb:"",country:"",city:"",postCode:""},
             showEditSection: false,
         }
 
@@ -34,7 +34,7 @@ export class Address extends React.Component {
     }
 
     handleChange(event) {
-        const data = Object.assign({}, this.state.addressData)
+        const data = this.state.addressData
         console.log(data)
         data[event.target.name] = event.target.value
        
@@ -44,10 +44,17 @@ export class Address extends React.Component {
     }
 
     saveContact() {
+        if(this.state.addressData.number===""||this.state.addressData.street===""||this.state.addressData.suburb===""
+        ||this.state.addressData.country===""||this.state.addressData.city===""||this.state.addressData.postCode==="")
+        {
+            TalentUtil.notification.show("Please enter address details", "error", null, null)
+        }
+        else{
         const data = Object.assign({}, this.state.addressData)
         console.log(data)
         this.props.controlFunc(this.props.componentId, data)
         this.closeEdit()
+        }
     }
 
     render() {
@@ -63,17 +70,29 @@ export class Address extends React.Component {
         let selectedCity = this.state.addressData.city;
 
         countriesOptions = Object.keys(Countries).map((x) => <option key={x} value={x}>{x}</option>);
+        //selectedCity=""
         if (selectedCountry != "" && selectedCountry != null ) {
-        var popCities = Countries[selectedCountry].map(x => <option key={x} value={x}> {x}</option>);
+        var popCities = Countries[selectedCountry].map(y => <option key={y} value={y}> {y}</option>);
         citiesOptions = <select
                 className="ui dropdown"
                 placeholder="City"
                 value={selectedCity}
                 onChange={this.handleChange}
                 name="city">
-                <option value="0"> Select a town or city</option>
+                <option>Select a town or city</option>
                 {popCities}
             </select>
+            //debugger
+        }
+        else{
+            citiesOptions = <select
+            className="ui dropdown"
+            placeholder="City"
+            value={selectedCity||""}
+            onChange={this.handleChange}
+            name="city">
+            <option value="">Select a town or city</option>
+        </select>
         }
 
         return (
@@ -149,8 +168,8 @@ export class Address extends React.Component {
         )
     }
     renderDisplay() {
-        let address = this.props.addressData ? `${this.props.addressData.number},`+" "+`${this.props.addressData.street},`+" "+
-        `${this.props.addressData.suburb},`+" "+`${this.props.addressData.postCode}` : ""
+        let address = this.props.addressData ? (this.props.addressData.number +" "+this.props.addressData.street+" "+
+        this.props.addressData.suburb +" "+ this.props.addressData.postCode) : " "
         let city = this.props.addressData.city
         let country=this.props.addressData.country
        
@@ -196,7 +215,7 @@ export class Nationality extends React.Component {
         <div className='ui seven wide column'>
         <select
         placeholder="Select your nationality"
-        value={selectedCountry}
+        value={selectedCountry||""}
         onChange={this.handleChange}
         name="nationality">
         <option value="">Select your nationality</option>

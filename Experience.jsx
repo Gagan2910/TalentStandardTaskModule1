@@ -1,11 +1,13 @@
 ﻿/* Experience section */
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import Cookies from 'js-cookie';
-import {Table,Icon, Tab} from 'semantic-ui-react'
-import { ChildSingleInput } from '../Form/SingleInput.jsx';
-import DatePicker from "react-datepicker";
+import {Button,Table,Icon, Tab} from 'semantic-ui-react'
+import moment from 'moment'
+import nextId from "react-id-generator"
+
+
 const initialExperience ={
-    id:"",
+    id:nextId(),
     company:'',
     position:'',
     responsibilities:'',
@@ -18,243 +20,171 @@ export default class Experience extends React.Component {
         super(props);
         this.state={
             experience:initialExperience,
-            showaddExperience:false,
-            showeditExperience:false,
+            showAddSection:false,
+            //showeditExperience:false,
+            tableEditId: "",
+            showTableData: true,
         }
         this.handleAddClick=this.handleAddClick.bind(this)
         this.renderAdd=this.renderAdd.bind(this)
         this.handleChange=this.handleChange.bind(this)
-        this.handleCloseClick=this.handleCloseClick.bind(this)
+       
         this.savenewExperience=this.savenewExperience.bind(this)
-        this.handleDelete=this.handleDelete.bind(this)
-        this.startEditing=this.startEditing.bind(this)
-        this.renderEdit=this.renderEdit.bind(this)
+
+        this.closeEdit = this.closeEdit.bind(this);
+        this.closeEditTable = this.closeEditTable.bind(this);
+        this.editRecord = this.editRecord.bind(this);
+        this.closeRecord = this.closeRecord.bind(this);
     };
     handleAddClick()
     {
        this.setState({
-        showaddExperience:true
+        showAddSection:true
         }) 
     }
-    handleChange({target}){
-        const { name, value } = target;
-        this.setState((state) => ({experience: {...state.experience, [name]: value } }));
-    }
-    handleCloseClick(){
+    handleChange(event){
+        event.preventDefault();
+        const id = event.target.id;
+        var data = this.state.experience
+        data[id] = event.target.value
         this.setState({
-            showeditExperience:false,
-            showaddExperience:false
-            }) 
-    }
-    handleDelete(id){
-        const filteredItems=this.props.experienceData.filter((exp)=>
-        exp.id!=id)
-        this.props.controlFunc(this.props.componentId,filteredItems)
-    }
-    startEditing(id){
-        console.log(id)
-        const selectedItem=this.props.experienceData.find(exp=>exp.id===id)
-        console.log(selectedItem)
+            experience: data
+        })
+        /*var data = this.state.experience
+        data[event.target.name] = event.target.value
+        data[id] = event.target.value
         this.setState({
-            experience:selectedItem,
-            showeditExperience:true,
-          })
-
+            experience: data
+        })*/
     }
-    savenewExperience(){
-        const experience = this.state.experience;
-
-        //if there is no id add the concat the language to the array
-        const experiences = this.state.experience.id ? this.props.experienceData:this.props.experienceData.concat(experience);
-        const newExperiences = experiences.reduce((curr, acc) => {
-            if (acc.id === experience.id) {
-                curr.push(experience);
-            } else {
-                curr.push(acc);
-            }
-            return curr;
-        }, []);
-        console.log(newExperiences)
-        this.props.controlFunc(this.props.componentId,newExperiences)
-        this.handleCloseClick()
-
+    
+    closeEdit() {
+        this.setState({ showAddSection: false });
+    }
+    closeEditTable() {
+        this.setState({ showTableData: true });
+    }
+    editRecord(event) {
+        var selectedId = event.target.id;
+        this.setState({ showTableData: false, tableEditId: selectedId });
+    }
+    closeRecord(event) {        
+        event.preventDefault();
+        var id = event.target.id;
+        var deleteExp = this.props.experienceData;
+        deleteExp = deleteExp.filter(item => id !== item.id)
+        var updateData = {
+            experience: [...deleteExp]
+        }
+        this.props.updateProfileData(updateData);
+        this.setState({ showTableData: true });
+    }
+  
+    savenewExperience(event){
+        event.preventDefault()
+        if(this.state.experience.company===""||this.state.experience.position===""||
+        this.state.experience.responsibilities===""||this.state.experience.start===""||
+        this.state.experience.end==="")
+        {
+         TalentUtil.notification.show("Please enter required fields", "error", null, null)
+        }
+        else{
+            var arr = [this.state.experience]
+            var data = [...arr, ...this.props.experienceData]
+            var updateData = {
+            experience: [...data]
+        }
+        this.props.updateProfileData(updateData)
+        this.setState({
+            showAddSection: false, experience: { id: "", company: "", position: "",start:"",end:"",
+            responsibilities:"" }
+        });
+      }
     }
     renderAdd(){
         return(
         <div className='row'>
-        <div className='ui eight wide column'>
-          <ChildSingleInput
-             inputType="text"
-             label="Company:"
-             name="company"
-             value={this.state.experience.company||""}
-             controlFunc={this.handleChange}
-             maxLength={50}
-             placeholder="Company"
-             errorMessage="Please enter company"
-         />
+        <div className='ui eight wide column' id='inputExperience'>
+        <h5>Company:</h5>
+        <input type="text" 
+        id="company" 
+        name="company" 
+        placeholder="Company"
+        onChange={this.handleChange}
+        maxLength={12}
+        />
          </div>
          <div className='ui eight wide column'>
-         <ChildSingleInput
-            inputType="text"
-            label="Position:"
+         <h5>Position:</h5>
+         <input type="text"
             name="position"
-            value={this.state.experience.position||""}
-            controlFunc={this.handleChange}
+            id="position"
+            onChange={this.handleChange}
             maxLength={50}
             placeholder="Position"
-            errorMessage="Please enter position"
         />
         </div>
-        <div className='ui eight wide column' style={{marginTop:"10px"}}>
-         <ChildSingleInput
-            inputType="date"
-            label="Start Date:"
+        <div className='ui eight wide column' style={{marginTop:'10px'}}>
+        <h5>Start Date:</h5>
+         <input type="date"
             name="start"
-            value={this.state.experience.start||""}
-            controlFunc={this.handleChange}
-            maxLength={20}
+            id="start"
+            onChange={this.handleChange}
             placeholder="Start Date"
-            errorMessage="Please enter start date"
         />
         </div>
-        <div className='ui eight wide column' style={{marginTop:"10px"}}>
-        <ChildSingleInput
-           inputType="date"
-           label="End Date:"
+        <div className='ui eight wide column' style={{marginTop:'10px'}}>
+        <h5>End Date:</h5>
+        <input type="date"
            name="end"
-           value={this.state.experience.end||""}
-           controlFunc={this.handleChange}
-           maxLength={20}
+           id="end"
+           onChange={this.handleChange}
            placeholder="End Date"
-           errorMessage="Please enter end date"
        />
        </div>
-       <div className='ui sixteen wide column' style={{marginTop:"10px"}}>
-       <ChildSingleInput
-          inputType="text"
-          label="Responsibilities:"
+       <div className='ui sixteen wide column' style={{marginTop:'10px'}}>
+       <h5>Responsibilities:</h5>
+       <input type="text"
           name="responsibilities"
-          value={this.state.experience.responsibilities||""}
-          controlFunc={this.handleChange}
+          id="responsibilities"
+          onChange={this.handleChange}
           maxLength={500}
           placeholder="Responsibilities"
-          errorMessage="Please enter responsibilities"
       />
       </div>
       <div className='ui six wide column' style={{marginTop:'10px'}}>
-      <button type="button" className="ui secondary button" onClick={this.savenewExperience}>Add</button>
-      <button type="button" className="ui button" onClick={this.handleCloseClick}>Cancel</button>
+      <Button secondary onClick={this.savenewExperience}>Add</Button>
+      <Button onClick={this.closeEdit}>Cancel</Button>
       </div>
       </div>
         )
     }
-    renderEdit(){
-        return(
-            <React.Fragment>
-            <Table.Row>
-            <Table.Cell style={{border:"none"}} colSpan="3"> 
-               <ChildSingleInput
-                  inputType="text"
-                  label="Company:"
-                  name="company"
-                  value={this.state.experience.company||""}
-                  controlFunc={this.handleChange}
-                  maxLength={50}
-                  placeholder="Company"
-                  errorMessage="Please enter company"
-              />
-             </Table.Cell>
-              <Table.Cell style={{border:"none"}} colSpan="3">
-              <ChildSingleInput
-                 inputType="text"
-                 label="Position:"
-                 name="position"
-                 value={this.state.experience.position||""}
-                 controlFunc={this.handleChange}
-                 maxLength={50}
-                 placeholder="Position"
-                 errorMessage="Please enter position"
-             />
-             </Table.Cell>
-             </Table.Row>
-             <Table.Row>
-             <Table.Cell style={{border:"none"}} colSpan="3">
-              <ChildSingleInput 
-                inputType="date"
-                label="Start Date:"
-                name="start"
-                value={this.state.experience.start||""}
-                controlFunc={this.handleChange}
-                maxLength={20}
-                placeholder="Start Date"
-                errorMessage="Please enter start date"
-             />
-             </Table.Cell>
-            <Table.Cell style={{border:"none"}} colSpan="3">
-             <ChildSingleInput
-                inputType="date"
-                label="End Date:"
-                name="end"
-                value={this.state.experience.end||""}
-                controlFunc={this.handleChange}
-                maxLength={20}
-                placeholder="End Date"
-                errorMessage="Please enter end date"
-            />
-            </Table.Cell>
-            </Table.Row>
-            <Table.Row>
-           <Table.Cell style={{border:"none"}} colSpan="6">
-            <ChildSingleInput
-               inputType="text"
-               label="Responsibilities:"
-               name="responsibilities"
-               value={this.state.experience.responsibilities||""}
-               controlFunc={this.handleChange}
-               maxLength={500}
-               placeholder="Responsibilities"
-               errorMessage="Please enter responsibilities"
-           />
-           </Table.Cell>
-           </Table.Row>
-           <Table.Row>
-          <Table.Cell style={{border:"none"}} colSpan="6">
-           <button type="button" className="ui secondary button" onClick={this.savenewExperience}>Update</button>
-           <button type="button" className="ui button" onClick={this.handleCloseClick}>Cancel</button>
-         </Table.Cell>
-         </Table.Row>
-         </React.Fragment>
-         )
-            
-      
+    closeEdit() {
+        this.setState({ showAddSection: false });
     }
-    
+    handleUpdate(index,company,position,start,end,responsibilities,e) {
+        e.preventDefault();
+        var dataList = this.props.experienceData;
+        //debugger
+        const list = dataList.map((item, j) => {
+            if (j === index) {
+                item.company = this.state.experience.company ? this.state.experience.company:company;
+                item.position = this.state.experience.position ? this.state.experience.position:position;
+                item.start=this.state.experience.start?this.state.experience.start:start;
+                item.end=this.state.experience.end?this.state.experience.end:end;
+                item.responsibilities=this.state.experience.responsibilities?this.state.experience.responsibilities:responsibilities;
+                return item ;
+            } else {
+                return item;
+            }
+        });
+        this.props.updateProfileData(list);
+        this.setState({ showTableData: true });
+    }
+   
     render() {
-        const experienceData=this.props.experienceData||""
-        const addExperience=this.state.showaddExperience?this.renderAdd():""
-        const editExperience=this.state.showeditExperience?this.renderEdit():""
+      const addExperience=this.state.showAddSection?this.renderAdd():""
 
-        let exprData=experienceData.map((exp)=>
-        <Table.Row key={exp.id}>
-        <Table.Cell>{exp.company}</Table.Cell>
-        <Table.Cell>{exp.position}</Table.Cell>
-        <Table.Cell>{exp.responsibilities}</Table.Cell>
-        <Table.Cell>{new Intl.DateTimeFormat('en-NZ', {
-            year:'numeric',
-            month:'short',
-            day:'2-digit'
-        }).format(new Date(exp.start))}</Table.Cell>
-        <Table.Cell>{new Intl.DateTimeFormat('en-NZ', {
-            year:'numeric',
-            month:'short',
-            day:'2-digit'
-        }).format(new Date(exp.end))}</Table.Cell>
-        <Table.Cell textAlign='right'>
-        <Icon name="pencil" onClick={()=>this.startEditing(exp.id)}/>
-        <Icon name="cancel" onClick={()=>this.handleDelete(exp.id)}></Icon></Table.Cell>
-        </Table.Row>
-        )
         return(
             <React.Fragment>
             {addExperience}
@@ -274,30 +204,66 @@ export default class Experience extends React.Component {
              </Table.Row>
            </Table.Header>
            <Table.Body>
-          {editExperience}
-           </Table.Body>
-           <Table.Body>
-           {exprData}
+           {this.props.experienceData.map((expList, index) =>
+            !this.state.showTableData && this.state.tableEditId == expList.id ?
+                <React.Fragment key={expList.id}>
+                        <Table.Row>
+                            <Table.Cell colSpan="3" style={{border:"none"}}>
+                            <h5>Company:</h5>
+                            <input type="text" name="company" placeholder="Company" maxLength={80} onChange={this.handleChange} id="company" defaultValue={expList.company} />
+                            </Table.Cell>
+                            <Table.Cell colSpan="3" style={{border:"none"}}>
+                            <h5>Position:</h5>
+                            <input type="text" name="position" placeholder="Position" maxLength={50} onChange={this.handleChange} id="position" defaultValue={expList.position} />
+                            </Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                            <Table.Cell colSpan="3" style={{border:"none"}}>
+                            <h5>Start Date:</h5>
+                            <div className="ui calendar" >
+                            <input type="date" name="start" defaultValue={moment(expList.start).format("YYYY-MM-DD")} onChange={this.handleChange} id="start" />
+                            </div>
+                            </Table.Cell>
+                            <Table.Cell colSpan="3" style={{border:"none"}}>
+                            <h5>End Date:</h5>
+                                <div className="ui calendar" >
+                                        <input type="date" name="end" defaultValue={moment(expList.end).format("YYYY-MM-DD")} onChange={this.handleChange} id="end" />
+                                </div>
+                            </Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                        <Table.Cell colSpan="6" style={{border:"none"}}>
+                        <h5>Responsibilities:</h5>
+                        <input type="text" name="responsibilities" placeholder="Responsibilities" maxLength={100} onChange={this.handleChange} id="responsibilities" defaultValue={expList.responsibilities} />
+                        </Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                        <Table.Cell colSpan="6" style={{border:"none"}}>
+                            <button type="button" className="ui teal button" onClick={(e) => this.handleUpdate(index, expList.company, expList.position, expList.start, expList.end, expList.responsibilities, e)}>Update</button>
+                            <button type="button" className="ui button" onClick={this.closeEditTable}>Cancel</button>
+                        </Table.Cell>
+                        </Table.Row>
+                    </React.Fragment>
+                :
+                       <Table.Row key={expList.id}>
+                       <Table.Cell>{expList.company}</Table.Cell>
+                       <Table.Cell>{expList.position}</Table.Cell>
+                       <Table.Cell>{expList.responsibilities}</Table.Cell>
+                       <Table.Cell>{moment(expList.start).format("Do MMM, YYYY")}</Table.Cell>
+                       <Table.Cell>{moment(expList.end).format("Do MMM, YYYY")}</Table.Cell>
+                       <Table.Cell textAlign='right'>
+                       <Icon name="pencil" id={expList.id} onClick={this.editRecord} />
+                       <Icon name="close" id={expList.id} onClick={this.closeRecord} />
+                       </Table.Cell>
+                       </Table.Row>
+               )}
            </Table.Body>
          </Table>
          </div>
          </React.Fragment>
         )
-
-        
     }
-
 }
 
 
 
-/* <ChildSingleInput
-                 inputType="date"
-                 label="Start Date:"
-                 name="start"
-                 value={this.state.experience.start||""}
-                 controlFunc={this.handleChange}
-                 maxLength={20}
-                 placeholder="Start Date"
-                 errorMessage="Please enter start date"
-             />*/

@@ -8,7 +8,7 @@ export default class SocialMediaLinkedAccount extends React.Component {
         super(props);
       
         this.state = {
-            linkedAccounts:props.linkedAccounts,
+            linkedAccounts:{linkedIn:"",github:""},
             showEditSection: false
         }
         this.openEdit = this.openEdit.bind(this)
@@ -50,11 +50,17 @@ export default class SocialMediaLinkedAccount extends React.Component {
     }
 
     saveLinkedAccounts() {
+        if(this.state.linkedAccounts.linkedIn ==="" || this.state.linkedAccounts.github ==="")
+        {
+          TalentUtil.notification.show("Please enter linkedIn and github accounts", "error", null, null)
+        }
+        else{
         console.log(this.state.linkedAccounts)
         const data = Object.assign({}, this.state.linkedAccounts)
         this.props.controlFunc(this.props.componentId, data)
         //this.props.saveProfileData(data)
         this.closeEdit()
+        }
     }
     openLinkedIn(event)
     {

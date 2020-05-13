@@ -1,24 +1,13 @@
 ﻿import React from 'react'
-import { SingleInput } from '../Form/SingleInput.jsx';
-import { ChildSingleInput } from '../Form/SingleInput.jsx';
-import SocialMediaLinkedAccount from './SocialMediaLinkedAccount.jsx';
-import moment from 'moment';
-import DatePicker from "react-datepicker";
-
+import moment from 'moment'
 
 export default class VisaStatus extends React.Component {
     constructor(props) {
         super(props)
-        const visaData=props.visaData ? Object.assign({},props.visaData):
-            {
-                visaStatus:'',
-                visaExpiryDate:""
-            }
         this.state = {
-            newvisaData:visaData,
-            //showExpiryDate:false,
-            //visaStatus:props.visaStatus,
-            //visaExpiryDate:props.visaExpiryDate
+            visaData:{
+            visaStatus:"",
+            visaExpiryDate:""}
         }
         this.handleChange = this.handleChange.bind(this)
         this.handleDateChange=this.handleDateChange.bind(this)
@@ -32,48 +21,44 @@ export default class VisaStatus extends React.Component {
     }
    
     handleChange(event) {
-        const data = Object.assign({}, this.state.newvisaData)
-        data[event.target.name] = event.target.value
-        console.log(data)
-        
+       let data= this.state.visaData
+       data[event.target.name] = event.target.value
        if(event.target.value=='Citizen' || event.target.value=='Permanent Resident')
-        {
-            this.props.controlFunc(this.props.componentId,data)
-            this.setState({
-                [event.target.name]:event.target.value,
-                //showExpiryDate:false
-              })
+        { 
+        data["visaExpiryDate"]=""
+        this.props.controlFunc(this.props.componentId,data)
         }
+
         if(event.target.value=='Work Visa' || event.target.value=='Student Visa')
         {
-          
             this.setState({
-                //showExpiryDate:true,
                 [event.target.name]:event.target.value,
-                newvisaData:data
               })
-             this.props.controlFunc(this.props.componentId,data)
+            this.props.controlFunc(this.props.componentId,data)
         } 
 
         this.setState({
-            newvisaData:data
+            visaData:data,
+            visaExpiryDate:""
           })
     }
    
     saveVisaData() {
-        console.log(this.props.componentId)
-        console.log(this.state.newvisaData)
-        const data = Object.assign({}, this.state.newvisaData)
-        console.log(data)
+        if(this.state.visaData.visaExpiryDate==="")
+        {
+            TalentUtil.notification.show("Please enter visa expiry date", "error", null, null)
+        }
+        else
+        {
+        const data = this.state.visaData
+        //console.log(data)
         this.props.controlFunc(this.props.componentId,data)
-        //const data = Object.assign({}, this.state.visaExpiryDate)
-        //this.props.saveProfileData(data)
-
+        }
     }
     
     render() {
-        let visaStatus = this.props.visaData? this.props.visaData.visaStatus:"";
-        let visaExpiryDate=this.props.visaData?this.props.visaData.visaExpiryDate:"";
+        let visaStatus = this.props.visaStatus?this.props.visaStatus:"";
+        let visaExpiryDate=this.props.visaExpiryDate?this.props.visaExpiryDate:"";
 
         return(
             <div className='row'>
@@ -91,22 +76,22 @@ export default class VisaStatus extends React.Component {
             </select>
             </div>
             
-           
-            {this.props.visaData.visaStatus=="Student Visa"||
-            this.props.visaData.visaStatus=="Work Visa"?
+            {this.props.visaStatus=="Student Visa"||
+            this.props.visaStatus=="Work Visa"?
             <React.Fragment>
             <div className='ui six wide column'>
-            
-            <ChildSingleInput 
-                inputType="date"
-                label="Visa expiry date:"
+            <h5>Visa expiry date:</h5>
+            <div className="ui calendar">
+            <input 
+                type="date"
                 name="visaExpiryDate"
-                defaultValue={visaExpiryDate|| ""}
-                controlFunc={this.handleChange}
+                defaultValue={moment(visaExpiryDate).format("YYYY-MM-DD")}
+                onChange={this.handleChange}
                 maxLength={20}
                 placeholder="Expiry Date"
-                errorMessage="Please enter expiry date"
+                errormessage="Please enter expiry date"
              />
+             </div>
             </div>
             <div className='ui three wide column' style={{marginTop:"15px"}}>
             <h5></h5>
